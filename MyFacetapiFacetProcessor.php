@@ -14,9 +14,9 @@ class MyFacetapiFacetProcessor extends FacetapiFacetProcessor {
     $this->build = $build;
 
     // Init URL Process
-    //$this->MyUrlprocess = $this->facet->getAdapter()->loadUrlProcessor('facetapi_terms');
+    $this->MyUrlprocess = $this->facet->getAdapter()->loadUrlProcessor('facetapi_terms');
     $this->facet->getAdapter()->initUrlProcessor();
-    //$this->MyFetchParams = $this->MyUrlprocess->fetchParams();
+    $this->MyFetchParams = $this->MyUrlprocess->fetchParams();
   }
 
   // process facet.
@@ -34,15 +34,15 @@ class MyFacetapiFacetProcessor extends FacetapiFacetProcessor {
   }
 
   public function MyprocessQueryStrings(&$build) {
-    foreach ($build as $value => $item) {
+    foreach ($build as $value => &$item) {
       $values = array($value);
       // Calculate paths for the children.
       if (!empty($item['#item_children'])) {
-        $this->processQueryStrings($item['#item_children']);
+        $this->MyprocessQueryStrings($item['#item_children']);
         // Merges the childrens' values if the item is active so the children
         // are deactivated along with the parent.
         if ($item['#active']) {
-          $values = array_merge(facetapi_get_child_values($item['#item_children']), $values);
+          facetapi_get_child_values($item['#item_children']);
         }
       }
       // Stores this item's active children so we can deactivate them in the

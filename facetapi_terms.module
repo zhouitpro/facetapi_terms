@@ -64,6 +64,8 @@ function facetapi_terms_block_details($index = '') {
 function facetapi_terms_build_data($detail) {
   static $search;
   if(!isset($search)) {
+    // 先引用ctools文件为了防止错误： Fatal Error: Call to undefined function ctools_plugin_load_class().
+    include_once drupal_get_path('module', 'ctools') . '/includes/plugins.inc';
     include_once drupal_get_path('module', 'facetapi_terms') . '/MySearchApiQuery.php';
     include_once drupal_get_path('module', 'facetapi_terms') . '/MyFacetapiFacetProcessor.php';
     include_once drupal_get_path('module', 'facetapi_terms') . '/MySearchApiFacetapiAdapter.php';

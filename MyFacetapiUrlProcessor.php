@@ -36,18 +36,20 @@ class MyFacetapiUrlProcessor extends FacetapiUrlProcessorPrettyPaths {
   public function getFacetPath(array $facet, array $values, $active) {
     $segments = $this->pathSegments;
     $active_items = $this->adapter->getActiveItems($facet);
-    
-//    $already_exists_alias = array();
-//    foreach($segments as $key => $segment) {
-//      $already_exists_alias[$key] = $segment['alias'];
-//    }
+ 
+    // 检查当前分类是否存在.
+    $already_exists_alias = array();
+    foreach($segments as $key => $segment) {
+      $already_exists_alias[$key] = $segment['alias'];
+    }
+
     // dpm($segments, 'values');
     // Adds to segments if inactive, removes if active.
     foreach ($values as $value) {
       $segment = $this->getPathSegment($facet, $value);
-//      if($index = array_search($segment['alias'], $already_exists_alias)) {
-//        unset($segments[$index]);
-//      }
+      if($index = array_search($segment['alias'], $already_exists_alias)) {
+        unset($segments[$index]);
+      }
 //      if ($active && isset($active_items[$value])) {
 //        unset($segments[$segment['key']]);
 //      }
@@ -55,10 +57,7 @@ class MyFacetapiUrlProcessor extends FacetapiUrlProcessorPrettyPaths {
         $segments[$segment['key']] = $segment;
 //     }
     }
-//    if(count($segments) == 5) {
-//      dpm($segments);
-//      dpm($values);
-//    }
+
     $path = $this->constructPath($segments);
     $path = str_replace('//', '/', $path);
     return $path;
