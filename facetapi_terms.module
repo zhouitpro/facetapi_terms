@@ -45,7 +45,7 @@ function facetapi_terms_build($search, $facet_name) {
 
 function facetapi_terms_block_details($index = '') {
   static $details;
-  if(!isset($details)) {
+  if (!isset($details)) {
     $searcher = 'search_api@default_node_index';
     $realm_name = 'block';
     $details = array();
@@ -63,7 +63,7 @@ function facetapi_terms_block_details($index = '') {
 
 function facetapi_terms_build_data($detail) {
   static $search;
-  if(!isset($search)) {
+  if (!isset($search)) {
     // 先引用ctools文件为了防止错误： Fatal Error: Call to undefined function ctools_plugin_load_class().
     include_once drupal_get_path('module', 'ctools') . '/includes/plugins.inc';
     include_once drupal_get_path('module', 'facetapi_terms') . '/MySearchApiQuery.php';
@@ -88,7 +88,7 @@ function facetapi_terms_build_data($detail) {
   $facet_api = new FacetapiFacet($adapter, $facet);
   // process facet.
   $process = new MyFacetapiFacetProcessor($facet_api);
-  
+
   $build = facetapi_terms_build($search, $facet['field']);
   $process->setBuild($build);
   $process->Myprocess();
@@ -112,7 +112,7 @@ function facetapi_terms_block_view($detail) {
 
 /**
  * 建立数据.
- **/
+ * */
 function facetapi_terms_items_list_each($datas) {
   $items = array();
   $output = '';
@@ -132,7 +132,7 @@ function facetapi_terms_items_list_each($datas) {
     'type' => 'ul',
 //    'attributes' => array('id' => 'scope-list'),
 //    'container_id' => 'scope-list-wrapper',
-    )
+      )
   );
 }
 

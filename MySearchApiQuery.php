@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Provides a standard implementation of the SearchApiQueryInterface.
  */
@@ -68,6 +69,11 @@ class MySearchApiQuery extends SearchApiQuery {
     return $this;
   }
 
+  public function Myfilter(SearchApiQueryFilterInterface $filter) {
+    $this->filter->filter($filter);
+    return $this;
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -76,10 +82,18 @@ class MySearchApiQuery extends SearchApiQuery {
     return $this;
   }
 
+  public function MyaddLanguages() {
+    global $language;
+    $filter = $this->createFilter('AND');
+    $filter->condition('search_api_language', $language->language);
+    $this->Myfilter($filter);
+  }
+
   /**
    * {@inheritdoc}
    */
   public function execute() {
+    $this->MyaddLanguages();
     $start = microtime(TRUE);
 
     // Prepare the query for execution by the server.
@@ -124,8 +138,8 @@ class MySearchApiQuery extends SearchApiQuery {
 
       // Preprocess query.
       $this->index->preprocessSearchQuery($this);
-      
-     /// search_api_facetapi_search_api_query_alter($this);
+
+      /// search_api_facetapi_search_api_query_alter($this);
       // $this->getIndex();
       $searcher = 'search_api@default_node_index';
       $info = facetapi_get_searcher_info();

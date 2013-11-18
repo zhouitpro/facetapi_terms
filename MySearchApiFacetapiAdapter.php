@@ -1,13 +1,12 @@
 <?php
 
-/* 
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 
-class MySearchApiFacetapiAdapter extends SearchApiFacetapiAdapter{
-
+class MySearchApiFacetapiAdapter extends SearchApiFacetapiAdapter {
 
   /**
    * Allows the backend to initialize its query object before adding the facet filters.
@@ -24,7 +23,6 @@ class MySearchApiFacetapiAdapter extends SearchApiFacetapiAdapter{
     // We statically store the current search per facet so that we can correctly
     // assign it when building the facets. See the build() method in the query
     // type plugin classes.
-    
     // Change.
     $active = drupal_static('search_api_facetapi_active_facets', array());
     foreach ($facets as $facet) {
@@ -53,11 +51,11 @@ class MySearchApiFacetapiAdapter extends SearchApiFacetapiAdapter{
       }
       $active[$facet['name']] = $search_id;
       $this->fields[$facet['name']] = array(
-        'field'             => $facet['field'],
-        'limit'             => $options['hard_limit'],
-        'operator'          => $options['operator'],
-        'min_count'         => $options['facet_mincount'],
-        'missing'           => $options['facet_missing'],
+        'field' => $facet['field'],
+        'limit' => $options['hard_limit'],
+        'operator' => $options['operator'],
+        'min_count' => $options['facet_mincount'],
+        'missing' => $options['facet_missing'],
       );
     }
   }

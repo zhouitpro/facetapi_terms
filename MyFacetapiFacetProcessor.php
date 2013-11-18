@@ -53,7 +53,6 @@ class MyFacetapiFacetProcessor extends FacetapiFacetProcessor {
       // dpm($this->facet->getAdapter()->getCurrentSearch()[0]->getOption('search_api_base_path'));
       // Get curent page base path.
       // $base_path = $this->MyUrlprocess->getBasePath();
-
       // base path.
       // dpm($pretty->getBasePath());
       // dpm($pretty->getFullPath(), 'full');
@@ -83,7 +82,7 @@ class MyFacetapiFacetProcessor extends FacetapiFacetProcessor {
     // Builds render arrays for each item.
     $adapter = $this->facet->getAdapter();
     $build = $this->build;
-    if(!empty($this->facet['alter callbacks'])) {
+    if (!empty($this->facet['alter callbacks'])) {
       foreach ($this->facet['alter callbacks'] as $callback) {
         $callback($build, $adapter, $this->facet->getFacet());
       }
