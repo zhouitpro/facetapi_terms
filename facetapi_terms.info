@@ -1,0 +1,4 @@
+name = Facet terms
+description = Facet terms.
+package = facet_api
+core = 7.x

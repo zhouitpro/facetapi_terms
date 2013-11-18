@@ -1,0 +1,149 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function facetapi_terms_block_info() {
+  $blocks = array();
+  foreach (facetapi_terms_block_details() as $detail => $facet) {
+    $blocks[$detail] = array(
+      'info' => t("FacetApi:{$facet['label']} Single Block"),
+      'cache' => DRUPAL_NO_CACHE,
+    );
+  }
+  return $blocks;
+}
+
+function facetapi_terms_build($search, $facet_name) {
+  $build = array();
+  $results = $search[1];
+  if (isset($results['search_api_facets'])) {
+    $values = $results['search_api_facets'][$facet_name];
+    foreach ($values as $value) {
+      $filter = $value['filter'];
+      // As Facet API isn't really suited for our native facet filter
+      // representations, convert the format here. (The missing facet can
+      // stay the same.)
+      if ($filter[0] == '"') {
+        $filter = substr($filter, 1, -1);
+      }
+      elseif ($filter != '!') {
+        // This is a range filter.
+        $filter = substr($filter, 1, -1);
+        $pos = strpos($filter, ' ');
+        if ($pos !== FALSE) {
+          $filter = '[' . substr($filter, 0, $pos) . ' TO ' . substr($filter, $pos + 1) . ']';
+        }
+      }
+      $build[$filter] = array(
+        '#count' => $value['count'],
+      );
+    }
+  }
+  return $build;
+}
+
+function facetapi_terms_block_details($index = '') {
+  static $details;
+  if(!isset($details)) {
+    $searcher = 'search_api@default_node_index';
+    $realm_name = 'block';
+    $details = array();
+    $i = 0;
+    foreach (facetapi_get_enabled_facets($searcher, $realm_name) as $name => $facet) {
+      $i++;
+      $details["single_$i"] = $facet;
+    }
+  }
+  if ($index != '' && isset($details[$index])) {
+    return $details[$index];
+  }
+  return $details;
+}
+
+function facetapi_terms_build_data($detail) {
+  static $search;
+  if(!isset($search)) {
+    include_once drupal_get_path('module', 'facetapi_terms') . '/MySearchApiQuery.php';
+    include_once drupal_get_path('module', 'facetapi_terms') . '/MyFacetapiFacetProcessor.php';
+    include_once drupal_get_path('module', 'facetapi_terms') . '/MySearchApiFacetapiAdapter.php';
+    include_once drupal_get_path('module', 'facetapi_terms') . '/MyFacetapiUrlProcessor.php';
+
+    // Set query.
+    $index = (search_api_index_load('default_node_index'));
+    $query = new MySearchApiQuery($index);
+    $query->execute();
+
+    $search = search_api_current_search('my_server_id');
+  }
+  //$my_data = search_api_current_search('my_server_id');
+  $searcher = 'search_api@default_node_index';
+
+  $adapter = facetapi_adapter_load($searcher);
+  // $facet = facetapi_facet_load('field_category', $searcher);
+  $facet = facetapi_terms_block_details($detail);
+  // get facet api.
+  $facet_api = new FacetapiFacet($adapter, $facet);
+  // process facet.
+  $process = new MyFacetapiFacetProcessor($facet_api);
+  
+  $build = facetapi_terms_build($search, $facet['field']);
+  $process->setBuild($build);
+  $process->Myprocess();
+
+  return $process->getBuild();
+  //   $process->process();
+  //  facetapi_get_taxonomy_hierarchy;
+  //  facetapi_get_taxonomy_hierarchy();
+  //  $facet['hierarchy callback']($build, $adapter, $facet);
+  //  $build = facetapi_build_realm($searcher, $realm_name);
+  //    dpm($build);
+}
+
+function facetapi_terms_block_view($detail) {
+  $datas = facetapi_terms_build_data($detail);
+  $facet = facetapi_terms_block_details($detail);
+  $block['subject'] = t($facet['label'] . '(Single block)');
+  $block['content'] = facetapi_terms_items_list_each($datas);
+  return $block;
+}
+
+/**
+ * 建立数据.
+ **/
+function facetapi_terms_items_list_each($datas) {
+  $items = array();
+  $output = '';
+  foreach ($datas as $key => $data) {
+    $item = '';
+    if ($key == '!') {
+      continue;
+    }
+    $item = l($data['#markup'], $data['#path']);
+    if (!empty($data['#item_children']) && $data['#active']) {
+      $item .= facetapi_terms_items_list_each($data['#item_children']);
+    }
+    $items[] = $item;
+  }
+  return theme('item_list', array(
+    'items' => $items,
+    'type' => 'ul',
+//    'attributes' => array('id' => 'scope-list'),
+//    'container_id' => 'scope-list-wrapper',
+    )
+  );
+}
+
+/**
+ * Implements hook_facetapi_url_processors().
+ */
+function facetapi_terms_facetapi_url_processors() {
+  return array(
+    'facetapi_terms' => array(
+      'handler' => array(
+        'label' => t('Facet all terms'),
+        'class' => 'MyFacetapiUrlProcessor',
+      ),
+    ),
+  );
+}
