@@ -46,7 +46,7 @@ function facetapi_terms_build($search, $facet_name) {
 function facetapi_terms_block_details($index = '') {
   static $details;
   if (!isset($details)) {
-    $searcher = 'search_api@default_node_index';
+    $searcher = facetapi_terms_get_search_info_index();
     $realm_name = 'block';
     $details = array();
     $i = 0;
@@ -83,10 +83,15 @@ function facetapi_terms_build_search_data() {
   return $search;
 }
 
+function facetapi_terms_get_search_info_index() {
+  $info = array_keys(facetapi_get_searcher_info());
+  return reset($info);
+}
+
 function facetapi_terms_build_data($facet) {
   $search = facetapi_terms_build_search_data();
   //$my_data = search_api_current_search('my_server_id');
-  $searcher = 'search_api@default_node_index';
+  $searcher = facetapi_terms_get_search_info_index();
 
   $adapter = facetapi_adapter_load($searcher);
   // $facet = facetapi_facet_load('field_category', $searcher);
@@ -113,10 +118,10 @@ function facetapi_terms_build_data($facet) {
  * 此处会返回一个静态的数据和静态的URL.
  * $facet = facetapi_facet_load('field_category', $searcher);
  * */
-function facetapi_terms_build_static_data($facet) {
+function facetapi_terms_build_static_data($facet, $base_path = '') {
   $search = facetapi_terms_build_search_data();
   //$my_data = search_api_current_search('my_server_id');
-  $searcher = 'search_api@default_node_index';
+  $searcher = facetapi_terms_get_search_info_index();
   $adapter = facetapi_adapter_load($searcher);
   // get facet api.
   $facet_api = new FacetapiFacet($adapter, $facet);
@@ -125,6 +130,9 @@ function facetapi_terms_build_static_data($facet) {
   $process->MyinitUrlProcessor('facetapi_terms');
   // 清空Segments.
   $process->MyUrlprocess->ClearSegments();
+  if($base_path) {
+    $process->MyUrlprocess->setBasePath($base_path);
+  }
   $build = facetapi_terms_build($search, $facet['field']);
   $process->setBuild($build);
   $process->Myprocess();
@@ -144,7 +152,6 @@ function facetapi_terms_build_static_data($facet) {
 function facetapi_terms_block_view($detail) {
   $facet = facetapi_terms_block_details($detail);
   $datas = facetapi_terms_build_data($facet);
-  $data1 = facetapi_terms_build_static_data($facet);
   asort($datas);
 //  $new_data = $new_data1 = array();
 //  foreach($datas as $data_id => $data) {
@@ -202,7 +209,7 @@ function facetapi_terms_current_search($search_id = NULL, SearchApiQuery $query 
 /**
  * 建立数据.
  * */
-function facetapi_terms_items_list_each($datas) {
+function facetapi_terms_items_list_each($datas, $is_children = TRUE) {
   $items = array();
   $output = '';
   foreach ($datas as $key => $data) {
@@ -211,7 +218,7 @@ function facetapi_terms_items_list_each($datas) {
       continue;
     }
     $item = l($data['#markup'], $data['#path']);
-    if (!empty($data['#item_children']) && $data['#active']) {
+    if (!empty($data['#item_children']) && $data['#active'] && $is_children) {
       $item .= facetapi_terms_items_list_each($data['#item_children']);
     }
     $items[] = $item;

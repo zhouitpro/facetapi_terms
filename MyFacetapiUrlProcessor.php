@@ -24,6 +24,10 @@ class MyFacetapiUrlProcessor extends FacetapiUrlProcessorPrettyPaths {
     }
     return $path;
   }
+  
+  public function setBasePath($path = '') {
+    $this->basePath = $path;
+  }
 
   public function ClearSegments() {
     $this->pathSegments = array();
