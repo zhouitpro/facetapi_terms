@@ -61,8 +61,10 @@ function facetapi_terms_block_details($index = '') {
   return $details;
 }
 
-function facetapi_terms_build_data($detail) {
+// Get Search Data.
+function facetapi_terms_build_search_data() {
   static $search;
+  // 以下为重新建立搜索数据.根据重写和没有定义Filter来获取所有的索引数据.
   if (!isset($search)) {
     // 先引用ctools文件为了防止错误： Fatal Error: Call to undefined function ctools_plugin_load_class().
     include_once drupal_get_path('module', 'ctools') . '/includes/plugins.inc';
@@ -76,19 +78,23 @@ function facetapi_terms_build_data($detail) {
     $query = new MySearchApiQuery($index);
     $query->execute();
 
-    $search = search_api_current_search('my_server_id');
+    $search = facetapi_terms_current_search('facetapi_terms_server');
   }
+  return $search;
+}
+
+function facetapi_terms_build_data($facet) {
+  $search = facetapi_terms_build_search_data();
   //$my_data = search_api_current_search('my_server_id');
   $searcher = 'search_api@default_node_index';
 
   $adapter = facetapi_adapter_load($searcher);
   // $facet = facetapi_facet_load('field_category', $searcher);
-  $facet = facetapi_terms_block_details($detail);
   // get facet api.
   $facet_api = new FacetapiFacet($adapter, $facet);
   // process facet.
   $process = new MyFacetapiFacetProcessor($facet_api);
-
+  $process->MyinitUrlProcessor('facetapi_terms');
   $build = facetapi_terms_build($search, $facet['field']);
   $process->setBuild($build);
   $process->Myprocess();
@@ -102,12 +108,95 @@ function facetapi_terms_build_data($detail) {
   //    dpm($build);
 }
 
+/**
+ * 获取一个静态的URL.
+ * 此处会返回一个静态的数据和静态的URL.
+ * $facet = facetapi_facet_load('field_category', $searcher);
+ * */
+function facetapi_terms_build_static_data($facet) {
+  $search = facetapi_terms_build_search_data();
+  //$my_data = search_api_current_search('my_server_id');
+  $searcher = 'search_api@default_node_index';
+  $adapter = facetapi_adapter_load($searcher);
+  // get facet api.
+  $facet_api = new FacetapiFacet($adapter, $facet);
+  // process facet.
+  $process = new MyFacetapiFacetProcessor($facet_api);
+  $process->MyinitUrlProcessor('facetapi_terms');
+  // 清空Segments.
+  $process->MyUrlprocess->ClearSegments();
+  $build = facetapi_terms_build($search, $facet['field']);
+  $process->setBuild($build);
+  $process->Myprocess();
+
+  return $process->getBuild();
+  //   $process->process();
+  //  facetapi_get_taxonomy_hierarchy;
+  //  facetapi_get_taxonomy_hierarchy();
+  //  $facet['hierarchy callback']($build, $adapter, $facet);
+  //  $build = facetapi_build_realm($searcher, $realm_name);
+  //    dpm($build);
+}
+
+/**
+ * Implements hook_block_view().
+ * */
 function facetapi_terms_block_view($detail) {
-  $datas = facetapi_terms_build_data($detail);
+  $facet = facetapi_terms_block_details($detail);
+  $datas = facetapi_terms_build_data($facet);
+  $data1 = facetapi_terms_build_static_data($facet);
+  asort($datas);
+//  $new_data = $new_data1 = array();
+//  foreach($datas as $data_id => $data) {
+//    $new_data[$data['#markup']] = array_merge($data, array('data_id' => $data_id));
+//  }
+//  dpm($new_data);
   $facet = facetapi_terms_block_details($detail);
   $block['subject'] = t($facet['label'] . '(Single block)');
   $block['content'] = facetapi_terms_items_list_each($datas);
   return $block;
+}
+
+/**
+ * Static store for the searches executed on the current page. Can either be
+ * used to store an executed search, or to retrieve a previously stored
+ * search.
+ *
+ * @param $search_id
+ *   For pages displaying multiple searches, an optional ID identifying the
+ *   search in questions. When storing a search, this is filled automatically,
+ *   unless it is manually set.
+ * @param SearchApiQuery $query
+ *   When storing an executed search, the query that was executed. NULL
+ *   otherwise.
+ * @param array $results
+ *   When storing an executed search, the returned results as specified by
+ *   SearchApiQueryInterface::execute(). An empty array, otherwise.
+ *
+ * @return array
+ *   If a search with the specified ID was executed, an array containing
+ *   ($query, $results) as used in this function's parameters. If $search_id is
+ *   NULL, an array of all executed searches will be returned, keyed by ID.
+ */
+function facetapi_terms_current_search($search_id = NULL, SearchApiQuery $query = NULL, array $results = array()) {
+  $searches = &drupal_static(__FUNCTION__, array());
+
+  if (isset($query)) {
+    if (!isset($search_id)) {
+      $search_id = $query->getOption('search id');
+    }
+    $base = $search_id;
+    $i = 0;
+    while (isset($searches[$search_id])) {
+      $search_id = $base . '-' . ++$i;
+    }
+    $searches[$search_id] = array($query, $results);
+  }
+
+  if (isset($search_id)) {
+    return isset($searches[$search_id]) ? $searches[$search_id] : NULL;
+  }
+  return $searches;
 }
 
 /**

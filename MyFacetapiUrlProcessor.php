@@ -25,6 +25,10 @@ class MyFacetapiUrlProcessor extends FacetapiUrlProcessorPrettyPaths {
     return $path;
   }
 
+  public function ClearSegments() {
+    $this->pathSegments = array();
+  }
+
   /**
    *  Pretty paths will be generated as "search/url/segment1/segment2/".
    *

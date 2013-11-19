@@ -2,21 +2,23 @@
 
 class MyFacetapiFacetProcessor extends FacetapiFacetProcessor {
 
-  protected $MyUrlprocess;
+  public $MyUrlprocess;
   public $MyFetchParams = array();
 
   public function __construct($facet) {
     parent::__construct($facet);
   }
 
+  public function MyinitUrlProcessor($process_name) {
+    // Init URL Process
+    $this->MyUrlprocess = $this->facet->getAdapter()->loadUrlProcessor($process_name);
+    $this->facet->getAdapter()->initUrlProcessor();
+    $this->MyFetchParams = $this->MyUrlprocess->fetchParams();
+  }
+
   //public function par
   public function setBuild($build) {
     $this->build = $build;
-
-    // Init URL Process
-    $this->MyUrlprocess = $this->facet->getAdapter()->loadUrlProcessor('facetapi_terms');
-    $this->facet->getAdapter()->initUrlProcessor();
-    $this->MyFetchParams = $this->MyUrlprocess->fetchParams();
   }
 
   // process facet.

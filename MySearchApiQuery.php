@@ -114,7 +114,7 @@ class MySearchApiQuery extends SearchApiQuery {
     $response['performance']['hooks'] = $response['performance']['complete'] - ($post_search - $pre_search);
 
     // Store search for later retrieval for facets, etc.
-    search_api_current_search('my_server_id', $this, $response);
+    facetapi_terms_current_search('facetapi_terms_server', $this, $response);
 
     return $response;
   }
